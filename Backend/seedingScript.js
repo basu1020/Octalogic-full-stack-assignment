@@ -1,32 +1,39 @@
-const mysql = require('mysql2');
-const dotenv = require('dotenv')
+// app.js
 
-dotenv.config()
+const { Sequelize, DataTypes } = require('sequelize');
+const dotenv = require('dotenv');
 
-// Extracting data from env file. 
+dotenv.config();
+
+// Extracting data from env file.
 const {
-    DB_HOST,
-    DB_USER,
-    DB_PASSWORD,
-    DB_DATABASE
+  DB_HOST,
+  DB_USER,
+  DB_PASSWORD,
+  DB_DATABASE
 } = process.env;
 
-// Create a MySQL connection
-const connection = mysql.createConnection({
-    host: DB_HOST,
-    user: DB_USER,
-    password: DB_PASSWORD,
-    database: DB_DATABASE,
+// Create Sequelize instance
+const sequelize = new Sequelize(DB_DATABASE, DB_USER, DB_PASSWORD, {
+  host: DB_HOST,
+  dialect: 'mysql',
 });
 
-const createTableQuery = `
-  CREATE TABLE IF NOT EXISTS vehicles (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    type VARCHAR(255),
-    no_of_wheels INT,
-    model VARCHAR(255)
-  )
-`;
+// Define Vehicle model
+const Vehicle = sequelize.define('Vehicles', {
+  type: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  no_of_wheels: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  model: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+});
 
 // Data to be inserted
 const vehicleData = [
@@ -36,7 +43,7 @@ const vehicleData = [
     { type: 'suv', no_of_wheels: 4, model: 'Toyota RAV4' },
     { type: 'suv', no_of_wheels: 4, model: 'Jeep Grand Cherokee' },
     { type: 'suv', no_of_wheels: 4, model: 'Subaru Outback' },
-    { type: 'sedan', no_of_wheels: 4, model: 'Honda Accord' },
+    { type: 'sedan', no_of_wheels: 4, model: 'Honda City' },
     { type: 'sedan', no_of_wheels: 4, model: 'Toyota Camry' },
     { type: 'sedan', no_of_wheels: 4, model: 'Nissan Altima' },
     { type: 'cruiser', no_of_wheels: 2, model: 'Harley-Davidson Softail' },
@@ -48,46 +55,32 @@ const vehicleData = [
 ];
 
 // Function to seed data
-function seedData() {
-    connection.query(createTableQuery, (err) => {
-      if (err) {
-        console.error(`Error creating table: ${err.message}`);
-        connection.end();
-        return;
-      }
-  
-      console.log('Table created successfully.');
-  
-      const insertQuery = 'INSERT INTO vehicles (type, no_of_wheels, model) VALUES (?, ?, ?)';
-      let insertedCount = 0;
-  
-      function insertNextData() {
-        if (insertedCount < vehicleData.length) {
-          const vehicle = vehicleData[insertedCount];
-          connection.query(insertQuery, [vehicle.type, vehicle.no_of_wheels, vehicle.model], (err, results) => {
-            if (err) {
-              console.error(`Error inserting data: ${err.message}`);
-            } else {
-              console.log(`Data inserted with ID ${results.insertId}`);
-            }
-            insertedCount++;
-            insertNextData();
-          });
-        } else {
-          connection.end();
-          console.log('Disconnected from MySQL database.');
-        }
-      }
-  
-      insertNextData();
-    });
+async function seedData() {
+  try {
+    // Sync the model with the database to ensure the table exists
+    await sequelize.sync({ force: true });
+
+    // Seed data
+    await Vehicle.bulkCreate(vehicleData);
+
+    console.log('Data seeded successfully.');
+  } catch (error) {
+    console.error('Error seeding data:', error);
+  } finally {
+    // Close the connection
+    await sequelize.close();
+    console.log('Disconnected from MySQL database.');
   }
-  
-  connection.connect((err) => {
-    if (err) {
-      console.error(`Error connecting to MySQL: ${err.message}`);
-    } else {
-      console.log('Connected to MySQL database.');
-      seedData();
-    }
+}
+
+// Connect to database and seed data
+sequelize.authenticate()
+  .then(() => {
+    console.log('Connected to MySQL database.');
+
+    // Call the seed function
+    seedData();
+  })
+  .catch((err) => {
+    console.error('Error connecting to MySQL:', err);
   });

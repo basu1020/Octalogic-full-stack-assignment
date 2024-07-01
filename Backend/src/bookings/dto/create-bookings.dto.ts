@@ -1,21 +1,26 @@
-import { IsString, IsDate, IsNumber, MinLength } from 'class-validator';
+import { IsString, IsDate, IsNumber, MinLength, IsDateString } from 'class-validator';
 
 export class CreateCarBookingsDto {
-  @IsString() @MinLength(3)
+  @IsString()
+  @MinLength(3, {
+    message: 'Min of 3 characters required for first name',
+  })
   firstName: string;
 
-  @IsString() @MinLength(3)
+  @IsString()
+  @MinLength(3, {
+    message: 'Min of 3 characters required for last name',
+  })
   lastName: string;
 
-  @IsDate()
+  @IsDateString()
   startDay: Date;
 
-  @IsDate()
+  @IsDateString()
   endDay: Date;
 
-  @IsNumber() 
+  @IsNumber()
   vehicleId: number;
-
 }
 
 
