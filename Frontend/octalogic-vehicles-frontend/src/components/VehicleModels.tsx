@@ -17,6 +17,8 @@ export const VehicleModels = () => {
   const [model, setModel] = useState(app.model);
   const [modelOptions, setModelOptions] = useState([]);
   const effectRan = useRef(false);
+  const [error, setError] = useState<string>('')
+
 
   const getModelOptions = async () => {
     if(app.vehicleType){
@@ -44,16 +46,23 @@ export const VehicleModels = () => {
 
   useEffect(() => {
     if (effectRan.current === false){
-      console.log('running');
       getModelOptions()
       return () => { effectRan.current = true} 
     }
   }, [])
 
+  useEffect(() => {
+  }, [error])
+
   const onClickSubmitButton = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if(model === ''){
+      setError('Please select one option')
+      return
+    } else {
+      setError('')
+    }
     setApp({ ...app, model, currentPage: 'dateSelection' });
-    console.log(app);
   };
 
   return (
@@ -73,6 +82,7 @@ export const VehicleModels = () => {
               return <FormControlLabel value={elem?.id} control={<Radio />} label={elem?.model} key={ind} />
             })}
           </RadioGroup>
+          {error !== '' ? <p className='text-red-500'>{error}</p> : ''}
         </FormControl>
         <Button variant="contained" type="submit">Next</Button>
       </form>

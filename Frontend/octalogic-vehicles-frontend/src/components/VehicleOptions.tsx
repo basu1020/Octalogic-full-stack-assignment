@@ -12,6 +12,7 @@ export const VehicleOptions = () => {
   const [wheels, setWheels] = useState(app.wheels);
   const [wheelsOptions, setWheelsOptions] = useState([]);
   const effectRan = useRef(false)
+  const [error, setError] = useState<string>('')
 
   const gettingWheelsOptions = async () => {
     try {
@@ -37,16 +38,23 @@ export const VehicleOptions = () => {
 
   useEffect(() => {
     if (effectRan.current === false){
-      console.log('running');
       gettingWheelsOptions()
       return () => { effectRan.current = true} 
     }
   }, [])
 
+  useEffect(() => {
+  }, [error])
+
   const onClickSubmitButton = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if(wheels === 0){
+      setError('Please select one option')
+      return
+    } else {
+      setError('')
+    }
     setApp({ ...app, wheels, currentPage: 'vehicleType' });
-    console.log(app);
   };
 
   return (
@@ -65,8 +73,8 @@ export const VehicleOptions = () => {
             {wheelsOptions.map((elem, ind) => {
             return <FormControlLabel value={elem} control={<Radio />} key={ind} label={`${elem}`} /> 
             })}
-            
           </RadioGroup>
+            {error !== '' ? <p className='text-red-500'>{error}</p> : ''}
           <Button variant="contained" type="submit">Next</Button>
         </FormControl>
       </form>

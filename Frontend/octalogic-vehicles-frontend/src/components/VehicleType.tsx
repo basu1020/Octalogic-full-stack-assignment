@@ -12,6 +12,8 @@ export const VehicleType = () => {
   const [vehicleType, setVehicleType] = useState(app.vehicleType);
   const [vehicleTypeOptions, setVehicleTypeOptions] = useState([]);
   const effectRan = useRef(false); 
+  const [error, setError] = useState<string>('')
+
 
   const getVehiclesTypeOptions = async() => {
     if(app.wheels === 2 || app.wheels === 4){
@@ -39,16 +41,23 @@ export const VehicleType = () => {
 
   useEffect(() => {
     if (effectRan.current === false){
-      console.log('running');
       getVehiclesTypeOptions()
       return () => { effectRan.current = true} 
     }
   }, [])
 
+  useEffect(() => {
+  }, [error])
+
   const onClickSubmitButton = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if(vehicleType === ''){
+      setError('Please select one option')
+      return
+    } else {
+      setError('')
+    }
     setApp({ ...app, vehicleType, currentPage: 'vehicleModels' });
-    console.log(app);
   };
 
   return (
@@ -64,12 +73,13 @@ export const VehicleType = () => {
             value={vehicleType}
             onChange={(e) => setVehicleType(e.target.value)}
           >
-            
+
             {vehicleTypeOptions.map((elem, ind) => {
               return <FormControlLabel value={elem} control={<Radio />} label={elem} key={ind} />
             })}
             
           </RadioGroup>
+          {error !== '' ? <p className='text-red-500'>{error}</p> : ''}
         </FormControl>
         <Button variant="contained" type="submit">Next</Button>
       </form>

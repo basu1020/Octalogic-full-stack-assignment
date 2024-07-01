@@ -11,7 +11,6 @@ export const NameDetails = () => {
   const onClickSubmitButton = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setApp({ ...app, firstName, lastName, currentPage: 'vehicleOptions' });
-    console.log(app);
   };
 
   return (
